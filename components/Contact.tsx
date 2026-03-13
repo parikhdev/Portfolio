@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 
 type Status = "idle" | "sending" | "sent" | "error";
 
@@ -17,18 +16,17 @@ export default function Contact() {
         if (!form.message.trim() || !form.email.trim()) return;
         setStatus("sending");
 
-        const { error } = await supabase.from("contact_messages").insert({
-            name: form.name,
-            email: form.email,
-            subject: form.subject,
-            message: form.message,
+        const res = await fetch("/api/contact", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(form),
         });
 
-        if (error) {
-            setStatus("error");
-        } else {
+        if (res.ok) {
             setStatus("sent");
             setForm({ name: "", email: "", subject: "", message: "" });
+        } else {
+            setStatus("error");
         }
     };
 
