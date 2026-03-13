@@ -9,6 +9,18 @@ const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+interface ContextChunk {
+    id: string;
+    content: string;
+    metadata: { type?: string; title?: string; slug?: string };
+    similarity: number;
+}
+
+interface ChatMessage {
+    role: "user" | "assistant";
+    content: string;
+}
+
 async function embed(text: string): Promise<number[]> {
     const res = await fetch(
         "https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction",
@@ -42,7 +54,10 @@ Rules:
 
 export async function POST(req: NextRequest) {
     try {
-        const { message, history = [] } = await req.json();
+        const { message, history = [] } = await req.json() as {
+            message: string;
+            history: ChatMessage[];
+        };
 
         if (!message?.trim()) {
             return NextResponse.json({ error: "No message provided" }, { status: 400 });
@@ -61,8 +76,8 @@ export async function POST(req: NextRequest) {
 
         if (matchError) console.error("Vector search error:", matchError);
 
-        const contextText = context?.length
-            ? context.map((c: any) => c.content).join("\n\n")
+        const contextText = (context as ContextChunk[] | null)?.length
+            ? (context as ContextChunk[]).map((c) => c.content).join("\n\n")
             : "No specific context found.";
 
         const messages = [
@@ -70,8 +85,8 @@ export async function POST(req: NextRequest) {
                 role: "system" as const,
                 content: `${SYSTEM_PROMPT}\n\n--- CONTEXT ---\n${contextText}\n--- END CONTEXT ---`,
             },
-            ...history.slice(-6).map((msg: any) => ({
-                role: msg.role as "user" | "assistant",
+            ...history.slice(-6).map((msg) => ({
+                role: msg.role,
                 content: msg.content,
             })),
             { role: "user" as const, content: message },
@@ -91,7 +106,7 @@ export async function POST(req: NextRequest) {
             session_id: req.headers.get("x-session-id") ?? "anonymous",
             question: message,
             answer,
-            sources: context?.map((c: any) => c.metadata?.type ?? "unknown") ?? [],
+            sources: (context as ContextChunk[] | null)?.map((c) => c.metadata?.type ?? "unknown") ?? [],
         });
 
         return NextResponse.json({ answer });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 interface Message {
     role: "user" | "assistant";
@@ -37,13 +37,13 @@ export default function ChatWidget() {
             }]);
         }
         if (open) setTimeout(() => inputRef.current?.focus(), 100);
-    }, [open]);
+    }, [open, messages.length]);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, loading]);
 
-    const sendMessage = async (text?: string) => {
+    const sendMessage = useCallback(async (text?: string) => {
         const userMessage = (text ?? input).trim();
         if (!userMessage || loading) return;
 
@@ -64,7 +64,7 @@ export default function ChatWidget() {
                 }),
             });
 
-            const data = await res.json();
+            const data = await res.json() as { answer?: string; error?: string };
             setMessages((prev) => [
                 ...prev,
                 { role: "assistant", content: data.answer ?? data.error ?? "Dispatch failed." },
@@ -77,11 +77,10 @@ export default function ChatWidget() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [input, loading, messages, sessionId]);
 
     return (
         <>
-            {/* Floating trigger button */}
             <button
                 onClick={() => setOpen((o) => !o)}
                 className="fixed bottom-6 right-6 z-50 bg-ink text-paper font-mono-ed text-[0.62rem] uppercase tracking-[0.15em] px-4 py-3 hover:bg-ink-light transition-colors duration-150 shadow-lg no-print"
@@ -90,14 +89,12 @@ export default function ChatWidget() {
                 {open ? "Close ✕" : "Interview the Journalist →"}
             </button>
 
-            {/* Chat panel */}
             {open && (
                 <div
                     id="chatbot"
                     className="fixed bottom-20 right-6 z-50 w-[92vw] max-w-md bg-paper border-2 border-ink shadow-2xl flex flex-col no-print"
                     style={{ height: "520px" }}
                 >
-                    {/* Header */}
                     <div className="border-b-4 border-ink px-4 py-3 bg-ink">
                         <div className="flex items-center justify-between">
                             <div>
@@ -117,7 +114,6 @@ export default function ChatWidget() {
                         </div>
                     </div>
 
-                    {/* Messages */}
                     <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
                         {messages.map((msg, i) => (
                             <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -160,7 +156,6 @@ export default function ChatWidget() {
                         <div ref={bottomRef} />
                     </div>
 
-                    {/* Suggested questions — only on first message */}
                     {messages.length === 1 && (
                         <div className="px-4 pb-2 flex flex-wrap gap-1.5">
                             {SUGGESTED_QUESTIONS.map((q) => (
@@ -175,7 +170,6 @@ export default function ChatWidget() {
                         </div>
                     )}
 
-                    {/* Input */}
                     <div className="border-t border-ink px-3 py-3 flex gap-2">
                         <input
                             ref={inputRef}

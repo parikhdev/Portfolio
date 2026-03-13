@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 
 interface Vlog {
@@ -36,7 +37,6 @@ export default function Vlogs() {
 
     return (
         <section id="vlogs" className="broadsheet">
-            {/* Section flag */}
             <div className="flex items-center gap-3 py-2 border-t-4 border-b border-ink">
                 <span className="section-label-inv">Multimedia</span>
                 <span className="section-label">Vlog Dispatches · YouTube</span>
@@ -60,14 +60,12 @@ export default function Vlogs() {
 
             {featured && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 border-b border-ink">
-                    {/* Video embed / thumbnail */}
                     <div className="lg:col-span-7 py-7 lg:pr-10 lg:border-r border-ink">
                         <div className="flex items-center gap-2 mb-4">
                             <span className="accent-flag">Video Report</span>
                             <span className="dateline">· YouTube Shorts</span>
                         </div>
 
-                        {/* Thumbnail with play overlay */}
                         <a
                             href={featured.youtube_url}
                             target="_blank"
@@ -76,11 +74,15 @@ export default function Vlogs() {
                             style={{ aspectRatio: "16/9" }}
                         >
                             {featured.thumbnail_url ? (
-                                <img
-                                    src={featured.thumbnail_url}
-                                    alt={featured.title}
-                                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300"
-                                />
+                                <div className="relative w-full h-full">
+                                    <Image
+                                        src={featured.thumbnail_url}
+                                        alt={featured.title}
+                                        fill
+                                        className="object-cover grayscale group-hover:grayscale-0 transition-all duration-300"
+                                        unoptimized
+                                    />
+                                </div>
                             ) : (
                                 <div className="w-full h-full bg-paper-darker flex items-center justify-center">
                                     <span className="font-mono-ed text-label text-ink-faint uppercase tracking-widest">
@@ -88,7 +90,6 @@ export default function Vlogs() {
                                     </span>
                                 </div>
                             )}
-                            {/* Play button overlay */}
                             <div className="absolute inset-0 flex items-center justify-center bg-ink/0 group-hover:bg-ink/20 transition-all duration-200">
                                 <div className="w-14 h-14 bg-ink text-paper flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
                                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 ml-1">
@@ -124,10 +125,9 @@ export default function Vlogs() {
                         </div>
                     </div>
 
-                    {/* Sidebar — editorial note */}
                     <aside className="lg:col-span-5 py-7 lg:pl-7 flex flex-col gap-6 border-t lg:border-t-0 border-ink">
                         <div className="border-t-4 border-b border-ink pt-4 pb-4">
-                            <p className="section-label mb-2">Editor's Note</p>
+                            <p className="section-label mb-2">Editor&apos;s Note</p>
                             <p
                                 className="font-playfair font-black italic text-ink leading-tight"
                                 style={{ fontSize: "clamp(1rem, 1.6vw, 1.25rem)" }}
@@ -139,7 +139,7 @@ export default function Vlogs() {
 
                         <div>
                             <p className="section-label border-b border-ink pb-1.5 mb-3">
-                                Correspondent's Beat
+                                Correspondent&apos;s Beat
                             </p>
                             {[
                                 ["Format", "YouTube Shorts + Vlogs"],
@@ -155,7 +155,6 @@ export default function Vlogs() {
                             ))}
                         </div>
 
-                        {/* Subscribe CTA */}
                         <a
                             href="https://www.youtube.com/@YashParikhOfficial"
                             target="_blank"
@@ -173,7 +172,6 @@ export default function Vlogs() {
                 </div>
             )}
 
-            {/* Additional vlogs if any */}
             {rest.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-3 border-b border-ink">
                     {rest.map((vlog, i) => (
@@ -183,12 +181,15 @@ export default function Vlogs() {
                         >
                             <a href={vlog.youtube_url} target="_blank" rel="noopener noreferrer" className="block group">
                                 {vlog.thumbnail_url && (
-                                    <img
-                                        src={vlog.thumbnail_url}
-                                        alt={vlog.title}
-                                        className="w-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300 mb-3"
-                                        style={{ aspectRatio: "16/9" }}
-                                    />
+                                    <div className="relative w-full mb-3" style={{ aspectRatio: "16/9" }}>
+                                        <Image
+                                            src={vlog.thumbnail_url}
+                                            alt={vlog.title}
+                                            fill
+                                            className="object-cover grayscale group-hover:grayscale-0 transition-all duration-300"
+                                            unoptimized
+                                        />
+                                    </div>
                                 )}
                                 <h3 className="font-playfair font-black text-ink text-base leading-tight group-hover:underline underline-offset-2">
                                     {vlog.title}
