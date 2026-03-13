@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
         if (!message?.trim()) {
             return NextResponse.json({ error: "No message provided" }, { status: 400 });
         }
+        
 
         const queryEmbedding = await embed(message);
 

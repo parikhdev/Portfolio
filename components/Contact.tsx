@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 
-type Status = "idle" | "sending" | "sent" | "error";
+type Status = "idle" | "sending" | "sent" | "error" | "invalid";
+
+const isValidEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
 export default function Contact() {
     const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
@@ -10,10 +13,15 @@ export default function Contact() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    };
+        if (status === "invalid") setStatus("idle");
+    };  
 
     const handleSubmit = async () => {
         if (!form.message.trim() || !form.email.trim()) return;
+        if (!isValidEmail(form.email)) {
+            setStatus("invalid");
+            return;
+        }
         setStatus("sending");
 
         const res = await fetch("/api/contact", {
@@ -120,6 +128,11 @@ export default function Contact() {
                             {status === "error" && (
                                 <p className="font-mono-ed text-[0.62rem] text-accent uppercase tracking-widest">
                                     Dispatch failed. Please try again or email directly.
+                                </p>
+                            )}
+                            {status === "invalid" && (
+                                <p className="font-mono-ed text-[0.7rem] uppercase tracking-widest text-accent mt-4">
+                                    Invalid email address. Please check and try again.
                                 </p>
                             )}
 

@@ -21,6 +21,11 @@ export async function POST(req: NextRequest) {
         if (!message?.trim() || !email?.trim()) {
             return NextResponse.json({ error: "Email and message are required." }, { status: 400 });
         }
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return NextResponse.json({ error: "Invalid email address." }, { status: 400 });
+        }
 
         // Save to Supabase
         const { error: dbError } = await supabase.from("contact_messages").insert({
